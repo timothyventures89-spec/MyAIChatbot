@@ -1,172 +1,448 @@
 const http = require("http");
 const OpenAI = require("openai");
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Get your API key from Windows environment variables
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
 const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My AI Chatbot</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-        }
+<title>Samuel AI</title>
 
-        .chat-container {
-            width: 90%;
-            max-width: 700px;
-            margin: 50px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            overflow: hidden;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        .header {
-            background: #2563eb;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7f7f8;
+    color: #222;
+    height: 100vh;
+    overflow: hidden;
+}
 
-        #messages {
-            height: 400px;
-            overflow-y: auto;
-            padding: 20px;
-        }
+.app {
+    display: flex;
+    height: 100vh;
+}
 
-        .message {
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 10px;
-            max-width: 80%;
-            white-space: pre-wrap;
-        }
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background: #202123;
+    color: white;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
 
-        .user {
-            background: #dbeafe;
-            margin-left: auto;
-        }
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 15px 10px 25px;
+}
 
-        .bot {
-            background: #eeeeee;
-            margin-right: auto;
-        }
+.new-chat {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #565869;
+    border-radius: 8px;
+    background: transparent;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    text-align: left;
+}
 
-        .input-area {
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid #ddd;
-        }
+.new-chat:hover {
+    background: #343541;
+}
 
-        input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-        }
+.sidebar-bottom {
+    margin-top: auto;
+}
 
-        button {
-            margin-left: 10px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            background: #2563eb;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
+.sidebar-button {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 13px 10px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 7px;
+    font-size: 14px;
+}
 
-        button:hover {
-            background: #1d4ed8;
-        }
+.sidebar-button:hover {
+    background: #343541;
+}
 
-        button:disabled {
-            background: #999;
-            cursor: not-allowed;
-        }
-    </style>
+/* MAIN */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    height: 60px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* CHAT */
+.chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 15%;
+}
+
+.welcome {
+    text-align: center;
+    margin-top: 12vh;
+}
+
+.welcome h1 {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.welcome p {
+    color: #666;
+    font-size: 16px;
+}
+
+.message {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+}
+
+.user-avatar {
+    background: #5436da;
+}
+
+.ai-avatar {
+    background: #10a37f;
+}
+
+.message-content {
+    flex: 1;
+    padding-top: 5px;
+    white-space: pre-wrap;
+}
+
+/* INPUT */
+.input-area {
+    padding: 20px 15%;
+    background: #f7f7f8;
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #d9d9e3;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 13px;
+    font-size: 16px;
+    background: transparent;
+}
+
+.send {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 8px;
+    background: #10a37f;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.send:hover {
+    background: #0d8c6d;
+}
+
+.send:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+.footer {
+    text-align: center;
+    color: #777;
+    font-size: 11px;
+    margin-top: 8px;
+}
+
+/* TYPING */
+.typing {
+    display: flex;
+    gap: 4px;
+    padding-top: 10px;
+}
+
+.typing span {
+    width: 7px;
+    height: 7px;
+    background: #777;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite;
+}
+
+.typing span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-5px);
+    }
+}
+
+/* DARK MODE */
+body.dark {
+    background: #343541;
+    color: #fff;
+}
+
+body.dark .main {
+    background: #343541;
+}
+
+body.dark .topbar {
+    background: #343541;
+    border-color: #565869;
+    color: white;
+}
+
+body.dark .input-area {
+    background: #343541;
+}
+
+body.dark .input-box {
+    background: #40414f;
+    border-color: #565869;
+}
+
+body.dark input {
+    color: white;
+}
+
+body.dark .welcome p {
+    color: #bbb;
+}
+
+body.dark .footer {
+    color: #aaa;
+}
+
+/* MOBILE */
+@media (max-width: 700px) {
+
+    .sidebar {
+        display: none;
+    }
+
+    .chat {
+        padding: 25px 15px;
+    }
+
+    .input-area {
+        padding: 12px;
+    }
+
+    .welcome h1 {
+        font-size: 26px;
+    }
+
+    .topbar {
+        padding: 0 15px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<div class="chat-container">
+<div class="app">
 
-    <div class="header">
-        🤖 My AI Chatbot
-    </div>
+    <aside class="sidebar">
 
-    <div id="messages">
-        <div class="message bot">
-            Hello! 👋 I'm your AI chatbot. Ask me anything!
+        <div class="logo">
+            🤖 Samuel AI
         </div>
-    </div>
 
-    <div class="input-area">
-
-        <input
-            id="userInput"
-            type="text"
-            placeholder="Type your message..."
-            onkeydown="if(event.key === 'Enter') sendMessage()"
-        >
-
-        <button id="sendButton" onclick="sendMessage()">
-            Send
+        <button class="new-chat" onclick="newChat()">
+            ＋ New chat
         </button>
 
-    </div>
+        <div class="sidebar-bottom">
+
+            <button class="sidebar-button" onclick="toggleDarkMode()">
+                🌓 Change appearance
+            </button>
+
+            <button class="sidebar-button" onclick="clearChat()">
+                🗑️ Clear conversation
+            </button>
+
+        </div>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            Samuel AI
+        </div>
+
+        <div class="chat" id="chat">
+
+            <div class="welcome" id="welcome">
+                <h1>How can I help you today?</h1>
+                <p>Ask Samuel AI anything.</p>
+            </div>
+
+        </div>
+
+        <div class="input-area">
+
+            <div class="input-box">
+
+                <input
+                    id="messageInput"
+                    type="text"
+                    placeholder="Message Samuel AI..."
+                    autocomplete="off"
+                >
+
+                <button
+                    class="send"
+                    id="sendButton"
+                    onclick="sendMessage()"
+                >
+                    ↑
+                </button>
+
+            </div>
+
+            <div class="footer">
+                Samuel AI can make mistakes. Check important information.
+            </div>
+
+        </div>
+
+    </main>
 
 </div>
 
 <script>
 
-async function sendMessage() {
+const input = document.getElementById("messageInput");
+const chat = document.getElementById("chat");
+const sendButton = document.getElementById("sendButton");
 
-    const input = document.getElementById("userInput");
-    const messages = document.getElementById("messages");
-    const button = document.getElementById("sendButton");
+input.addEventListener("keydown", function(event) {
 
-    const text = input.value.trim();
-
-    if (text === "") {
-        return;
+    if (event.key === "Enter") {
+        sendMessage();
     }
 
-    // Show user's message
-    const userMessage = document.createElement("div");
-    userMessage.className = "message user";
-    userMessage.textContent = text;
+});
 
-    messages.appendChild(userMessage);
+async function sendMessage() {
+
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    const welcome = document.getElementById("welcome");
+
+    if (welcome) {
+        welcome.remove();
+    }
+
+    addMessage(message, "user");
 
     input.value = "";
-    button.disabled = true;
-    button.textContent = "Thinking...";
 
-    // Show temporary thinking message
-    const botMessage = document.createElement("div");
-    botMessage.className = "message bot";
-    botMessage.textContent = "Thinking... 🤔";
+    sendButton.disabled = true;
 
-    messages.appendChild(botMessage);
-    messages.scrollTop = messages.scrollHeight;
+    const typing = document.createElement("div");
+
+    typing.className = "message";
+
+    typing.id = "typing";
+
+    typing.innerHTML = \`
+        <div class="avatar ai-avatar">🤖</div>
+
+        <div class="message-content">
+
+            <div class="typing">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+        </div>
+    \`;
+
+    chat.appendChild(typing);
+
+    scrollToBottom();
 
     try {
 
         const response = await fetch("/chat", {
+
             method: "POST",
 
             headers: {
@@ -174,31 +450,104 @@ async function sendMessage() {
             },
 
             body: JSON.stringify({
-                message: text
+                message: message
             })
+
         });
 
         const data = await response.json();
 
-        if (data.error) {
-            botMessage.textContent = "❌ Error: " + data.error;
+        typing.remove();
+
+        if (data.reply) {
+
+            addMessage(data.reply, "ai");
+
         } else {
-            botMessage.textContent = data.reply;
+
+            addMessage(
+                "❌ Sorry, Samuel AI could not respond.",
+                "ai"
+            );
+
         }
 
     } catch (error) {
 
-        botMessage.textContent =
-            "❌ I couldn't connect to the AI. Please try again.";
+        typing.remove();
 
-        console.error(error);
+        addMessage(
+            "❌ Connection error. Please try again.",
+            "ai"
+        );
 
     }
 
-    button.disabled = false;
-    button.textContent = "Send";
+    sendButton.disabled = false;
 
-    messages.scrollTop = messages.scrollHeight;
+    input.focus();
+
+}
+
+function addMessage(text, type) {
+
+    const message = document.createElement("div");
+
+    message.className = "message";
+
+    if (type === "user") {
+
+        message.innerHTML = \`
+            <div class="avatar user-avatar">👤</div>
+            <div class="message-content"></div>
+        \`;
+
+    } else {
+
+        message.innerHTML = \`
+            <div class="avatar ai-avatar">🤖</div>
+            <div class="message-content"></div>
+        \`;
+
+    }
+
+    message.querySelector(".message-content").textContent = text;
+
+    chat.appendChild(message);
+
+    scrollToBottom();
+
+}
+
+function scrollToBottom() {
+
+    chat.scrollTop = chat.scrollHeight;
+
+}
+
+function newChat() {
+
+    chat.innerHTML = \`
+        <div class="welcome" id="welcome">
+            <h1>How can I help you today?</h1>
+            <p>Ask Samuel AI anything.</p>
+        </div>
+    \`;
+
+    input.focus();
+
+}
+
+function clearChat() {
+
+    newChat();
+
+}
+
+function toggleDarkMode() {
+
+    document.body.classList.toggle("dark");
+
 }
 
 </script>
@@ -209,7 +558,6 @@ async function sendMessage() {
 
 const server = http.createServer(async (req, res) => {
 
-    // Show chatbot webpage
     if (req.method === "GET" && req.url === "/") {
 
         res.writeHead(200, {
@@ -217,10 +565,10 @@ const server = http.createServer(async (req, res) => {
         });
 
         res.end(html);
+
         return;
     }
 
-    // Receive chatbot messages
     if (req.method === "POST" && req.url === "/chat") {
 
         let body = "";
@@ -233,27 +581,26 @@ const server = http.createServer(async (req, res) => {
 
             try {
 
-                const data = JSON.parse(body);
-                const userMessage = data.message;
+                const { message } = JSON.parse(body);
 
-                if (!userMessage) {
+                if (!message) {
+
                     res.writeHead(400, {
                         "Content-Type": "application/json"
                     });
 
                     res.end(JSON.stringify({
-                        error: "Please enter a message."
+                        error: "No message provided"
                     }));
 
                     return;
                 }
 
-                // Send message to OpenAI
                 const response = await client.responses.create({
 
                     model: "gpt-5.6-luna",
 
-                    input: userMessage
+                    input: message
 
                 });
 
@@ -269,35 +616,34 @@ const server = http.createServer(async (req, res) => {
 
             } catch (error) {
 
-                console.error("OpenAI Error:", error);
+                console.error(error);
 
                 res.writeHead(500, {
                     "Content-Type": "application/json"
                 });
 
                 res.end(JSON.stringify({
-                    error: "The AI could not respond. Check your API key and account."
+                    error: "The AI could not respond."
                 }));
+
             }
+
         });
 
         return;
     }
 
-    // Page not found
     res.writeHead(404, {
         "Content-Type": "text/plain"
     });
 
     res.end("Not found");
+
 });
 
 server.listen(PORT, () => {
 
-    console.log("================================");
-    console.log("🤖 MY AI CHATBOT SERVER");
-    console.log("================================");
-    console.log("Running at:");
-    console.log("http://localhost:" + PORT);
+    console.log("🤖 SAMUEL AI CHATBOT SERVER");
+    console.log("Running on port " + PORT);
 
 });
