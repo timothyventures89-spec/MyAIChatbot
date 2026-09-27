@@ -7,26 +7,25 @@ const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-const html = `
-<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Samuel AI</title>
+<title>Samuel AIChatbot</title>
 
 <style>
+
 * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
 }
 
 body {
+    margin: 0;
     font-family: Arial, Helvetica, sans-serif;
-    background: #f7f7f8;
-    color: #222;
+    background: #ffffff;
+    color: #202123;
     height: 100vh;
     overflow: hidden;
 }
@@ -37,58 +36,86 @@ body {
 }
 
 /* SIDEBAR */
+
 .sidebar {
     width: 260px;
-    background: #202123;
-    color: white;
-    padding: 15px;
+    background: #f7f7f8;
+    border-right: 1px solid #e5e5e5;
     display: flex;
     flex-direction: column;
+    padding: 14px;
 }
 
 .logo {
     font-size: 20px;
     font-weight: bold;
-    padding: 15px 10px 25px;
+    padding: 12px 10px 20px;
 }
 
 .new-chat {
-    width: 100%;
-    padding: 13px;
-    border: 1px solid #565869;
+    border: 1px solid #d9d9e3;
+    background: white;
     border-radius: 8px;
-    background: transparent;
-    color: white;
-    font-size: 15px;
+    padding: 12px;
     cursor: pointer;
+    font-size: 15px;
     text-align: left;
 }
 
 .new-chat:hover {
-    background: #343541;
+    background: #eeeeee;
 }
 
-.sidebar-bottom {
-    margin-top: auto;
+.sidebar-buttons {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .sidebar-button {
-    width: 100%;
     border: none;
     background: transparent;
-    color: white;
-    padding: 13px 10px;
+    padding: 11px;
     text-align: left;
+    border-radius: 8px;
     cursor: pointer;
-    border-radius: 7px;
     font-size: 14px;
 }
 
 .sidebar-button:hover {
-    background: #343541;
+    background: #e9e9e9;
+}
+
+.chat-history {
+    margin-top: 18px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.history-title {
+    font-size: 12px;
+    color: #777;
+    padding: 8px;
+}
+
+.history-item {
+    padding: 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-item:hover {
+    background: #e5e5e5;
 }
 
 /* MAIN */
+
 .main {
     flex: 1;
     display: flex;
@@ -96,216 +123,288 @@ body {
     min-width: 0;
 }
 
-.topbar {
+.header {
     height: 60px;
-    background: white;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e5e5e5;
     display: flex;
     align-items: center;
-    padding: 0 25px;
-    font-weight: bold;
-    font-size: 18px;
+    justify-content: space-between;
+    padding: 0 20px;
 }
 
-/* CHAT */
-.chat {
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px 15%;
+.header-title {
+    font-size: 17px;
+    font-weight: 600;
 }
 
-.welcome {
-    text-align: center;
-    margin-top: 12vh;
-}
-
-.welcome h1 {
-    font-size: 32px;
-    margin-bottom: 12px;
-}
-
-.welcome p {
-    color: #666;
-    font-size: 16px;
-}
-
-.message {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 25px;
-    line-height: 1.6;
-}
-
-.avatar {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 19px;
-}
-
-.user-avatar {
-    background: #5436da;
-}
-
-.ai-avatar {
-    background: #10a37f;
-}
-
-.message-content {
-    flex: 1;
-    padding-top: 5px;
-    white-space: pre-wrap;
-}
-
-/* INPUT */
-.input-area {
-    padding: 20px 15%;
-    background: #f7f7f8;
-}
-
-.input-box {
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 1px solid #d9d9e3;
-    border-radius: 12px;
-    padding: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-input {
-    flex: 1;
+.header-actions button {
     border: none;
-    outline: none;
-    padding: 13px;
-    font-size: 16px;
     background: transparent;
-}
-
-.send {
-    width: 45px;
-    height: 45px;
-    border: none;
-    border-radius: 8px;
-    background: #10a37f;
-    color: white;
     font-size: 20px;
     cursor: pointer;
 }
 
-.send:hover {
-    background: #0d8c6d;
+/* CHAT */
+
+.chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 20px 120px;
 }
 
-.send:disabled {
+.welcome {
+    max-width: 750px;
+    margin: 80px auto;
+    text-align: center;
+}
+
+.welcome h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.welcome p {
+    color: #666;
+}
+
+/* MESSAGES */
+
+.message {
+    max-width: 850px;
+    margin: 0 auto 25px;
+    display: flex;
+    gap: 14px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 17px;
+}
+
+.user-avatar {
+    background: #5436da;
+    color: white;
+}
+
+.ai-avatar {
+    background: #10a37f;
+    color: white;
+}
+
+.message-content {
+    flex: 1;
+    line-height: 1.65;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.message-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 5px;
+}
+
+.message-actions button {
+    border: none;
+    background: transparent;
+    color: #777;
+    cursor: pointer;
+    padding: 4px 7px;
+    border-radius: 5px;
+}
+
+.message-actions button:hover {
+    background: #eeeeee;
+}
+
+/* INPUT */
+
+.input-area {
+    position: fixed;
+    bottom: 0;
+    left: 260px;
+    right: 0;
+    padding: 15px 20px 20px;
+    background: linear-gradient(
+        transparent,
+        white 30%
+    );
+}
+
+.input-box {
+    max-width: 850px;
+    margin: auto;
+    border: 1px solid #d9d9e3;
+    background: white;
+    border-radius: 14px;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 15px;
+    max-height: 160px;
+    min-height: 25px;
+    padding: 7px;
+}
+
+.send-button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    background: #10a37f;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.send-button:hover {
+    background: #0d8f6f;
+}
+
+.send-button:disabled {
     background: #aaa;
     cursor: not-allowed;
 }
 
 .footer {
     text-align: center;
-    color: #777;
     font-size: 11px;
-    margin-top: 8px;
+    color: #888;
+    margin-top: 6px;
 }
 
-/* TYPING */
-.typing {
-    display: flex;
-    gap: 4px;
-    padding-top: 10px;
+/* MEMORY PANEL */
+
+.memory-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 20;
 }
 
-.typing span {
-    width: 7px;
-    height: 7px;
-    background: #777;
-    border-radius: 50%;
-    animation: bounce 1.4s infinite;
+.memory-box {
+    width: 420px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: white;
+    border-radius: 12px;
+    margin: 10vh auto;
+    padding: 22px;
 }
 
-.typing span:nth-child(2) {
-    animation-delay: 0.2s;
+.memory-box h2 {
+    margin-top: 0;
 }
 
-.typing span:nth-child(3) {
-    animation-delay: 0.4s;
+.memory-item {
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
 }
 
-@keyframes bounce {
-    0%, 60%, 100% {
-        transform: translateY(0);
-    }
-
-    30% {
-        transform: translateY(-5px);
-    }
+.close-memory {
+    float: right;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
 }
 
 /* DARK MODE */
+
 body.dark {
-    background: #343541;
-    color: #fff;
+    background: #212121;
+    color: #ececec;
 }
 
-body.dark .main {
-    background: #343541;
+body.dark .sidebar {
+    background: #171717;
+    border-color: #333;
 }
 
-body.dark .topbar {
-    background: #343541;
-    border-color: #565869;
+body.dark .header {
+    border-color: #333;
+}
+
+body.dark .new-chat,
+body.dark .input-box,
+body.dark .memory-box {
+    background: #2b2b2b;
+    color: white;
+}
+
+body.dark .sidebar-button:hover,
+body.dark .history-item:hover,
+body.dark .message-actions button:hover {
+    background: #333;
+}
+
+body.dark textarea {
+    background: #2b2b2b;
     color: white;
 }
 
 body.dark .input-area {
-    background: #343541;
+    background: linear-gradient(
+        transparent,
+        #212121 30%
+    );
 }
 
-body.dark .input-box {
-    background: #40414f;
-    border-color: #565869;
-}
-
-body.dark input {
-    color: white;
-}
-
-body.dark .welcome p {
-    color: #bbb;
-}
-
-body.dark .footer {
-    color: #aaa;
+body.dark .memory-item {
+    background: #3a3a3a;
 }
 
 /* MOBILE */
+
 @media (max-width: 700px) {
 
     .sidebar {
         display: none;
     }
 
-    .chat {
-        padding: 25px 15px;
+    .input-area {
+        left: 0;
     }
 
-    .input-area {
-        padding: 12px;
+    .chat {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .message {
+        gap: 9px;
+    }
+
+    .welcome {
+        margin-top: 60px;
     }
 
     .welcome h1 {
-        font-size: 26px;
-    }
-
-    .topbar {
-        padding: 0 15px;
+        font-size: 25px;
     }
 }
+
 </style>
 </head>
 
@@ -323,15 +422,29 @@ body.dark .footer {
             ＋ New chat
         </button>
 
-        <div class="sidebar-bottom">
+        <div class="sidebar-buttons">
+
+            <button class="sidebar-button" onclick="showMemory()">
+                🧠 My memory
+            </button>
 
             <button class="sidebar-button" onclick="toggleDarkMode()">
-                🌓 Change appearance
+                🌙 Dark mode
             </button>
 
-            <button class="sidebar-button" onclick="clearChat()">
-                🗑️ Clear conversation
+            <button class="sidebar-button" onclick="clearEverything()">
+                🗑️ Clear data
             </button>
+
+        </div>
+
+        <div class="chat-history">
+
+            <div class="history-title">
+                CHAT HISTORY
+            </div>
+
+            <div id="history"></div>
 
         </div>
 
@@ -339,134 +452,496 @@ body.dark .footer {
 
     <main class="main">
 
-        <div class="topbar">
-            Samuel AI
-        </div>
+        <header class="header">
 
-        <div class="chat" id="chat">
+            <div class="header-title">
+                Samuel AIChatbot
+            </div>
+
+            <div class="header-actions">
+                <button onclick="newChat()" title="New chat">
+                    ＋
+                </button>
+            </div>
+
+        </header>
+
+        <section class="chat" id="chat">
 
             <div class="welcome" id="welcome">
-                <h1>How can I help you today?</h1>
-                <p>Ask Samuel AI anything.</p>
-            </div>
 
-        </div>
+                <h1>
+                    How can I help you today?
+                </h1>
 
-        <div class="input-area">
-
-            <div class="input-box">
-
-                <input
-                    id="messageInput"
-                    type="text"
-                    placeholder="Message Samuel AI..."
-                    autocomplete="off"
-                >
-
-                <button
-                    class="send"
-                    id="sendButton"
-                    onclick="sendMessage()"
-                >
-                    ↑
-                </button>
+                <p>
+                    I'm Samuel, your AI assistant.
+                </p>
 
             </div>
 
-            <div class="footer">
-                Samuel AI can make mistakes. Check important information.
-            </div>
-
-        </div>
+        </section>
 
     </main>
 
 </div>
 
+<div class="input-area">
+
+    <div class="input-box">
+
+        <textarea
+            id="messageInput"
+            placeholder="Message Samuel..."
+            rows="1"
+        ></textarea>
+
+        <button
+            class="send-button"
+            id="sendButton"
+            onclick="sendMessage()"
+        >
+            ➤
+        </button>
+
+    </div>
+
+    <div class="footer">
+        Samuel AI can make mistakes. Check important information.
+    </div>
+
+</div>
+
+<div class="memory-panel" id="memoryPanel">
+
+    <div class="memory-box">
+
+        <button
+            class="close-memory"
+            onclick="closeMemory()"
+        >
+            ×
+        </button>
+
+        <h2>🧠 My Memory</h2>
+
+        <p>
+            Samuel remembers these things on this device.
+        </p>
+
+        <div id="memoryList"></div>
+
+    </div>
+
+</div>
+
 <script>
 
-const input = document.getElementById("messageInput");
-const chat = document.getElementById("chat");
-const sendButton = document.getElementById("sendButton");
+let chats =
+    JSON.parse(
+        localStorage.getItem("samuel_chats") || "[]"
+    );
 
-input.addEventListener("keydown", function(event) {
+let memories =
+    JSON.parse(
+        localStorage.getItem("samuel_memories") || "[]"
+    );
 
-    if (event.key === "Enter") {
-        sendMessage();
+let currentChatId =
+    localStorage.getItem("samuel_current_chat");
+
+let darkMode =
+    localStorage.getItem("samuel_dark") === "true";
+
+if (darkMode) {
+    document.body.classList.add("dark");
+}
+
+function saveData() {
+
+    localStorage.setItem(
+        "samuel_chats",
+        JSON.stringify(chats)
+    );
+
+    localStorage.setItem(
+        "samuel_memories",
+        JSON.stringify(memories)
+    );
+
+    if (currentChatId) {
+        localStorage.setItem(
+            "samuel_current_chat",
+            currentChatId
+        );
+    }
+}
+
+function createChat() {
+
+    const chat = {
+        id: Date.now().toString(),
+        title: "New chat",
+        messages: []
+    };
+
+    chats.unshift(chat);
+
+    currentChatId = chat.id;
+
+    saveData();
+
+    renderHistory();
+
+    renderChat();
+
+    return chat;
+}
+
+function getCurrentChat() {
+
+    let chat = chats.find(
+        c => c.id === currentChatId
+    );
+
+    if (!chat) {
+        chat = createChat();
     }
 
-});
+    return chat;
+}
 
-async function sendMessage() {
+function newChat() {
 
-    const message = input.value.trim();
+    createChat();
 
-    if (!message) return;
+}
 
-    const welcome = document.getElementById("welcome");
+function renderHistory() {
+
+    const history =
+        document.getElementById("history");
+
+    history.innerHTML = "";
+
+    chats.forEach(chat => {
+
+        const item =
+            document.createElement("div");
+
+        item.className = "history-item";
+
+        item.textContent =
+            chat.title || "New chat";
+
+        item.onclick = function() {
+
+            currentChatId = chat.id;
+
+            saveData();
+
+            renderChat();
+
+        };
+
+        history.appendChild(item);
+
+    });
+
+}
+
+function renderChat() {
+
+    const chat =
+        document.getElementById("chat");
+
+    const current =
+        getCurrentChat();
+
+    chat.innerHTML = "";
+
+    if (current.messages.length === 0) {
+
+        chat.innerHTML = \`
+            <div class="welcome" id="welcome">
+                <h1>How can I help you today?</h1>
+                <p>I'm Samuel, your AI assistant.</p>
+            </div>
+        \`;
+
+        return;
+    }
+
+    current.messages.forEach(message => {
+
+        addMessageToScreen(
+            message.text,
+            message.role,
+            false
+        );
+
+    });
+
+    scrollToBottom();
+
+}
+
+function addMessageToScreen(
+    text,
+    role,
+    showActions = true
+) {
+
+    const chat =
+        document.getElementById("chat");
+
+    const welcome =
+        document.getElementById("welcome");
 
     if (welcome) {
         welcome.remove();
     }
 
-    addMessage(message, "user");
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className = "message";
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "avatar " +
+        (role === "user"
+            ? "user-avatar"
+            : "ai-avatar");
+
+    avatar.textContent =
+        role === "user"
+            ? "U"
+            : "S";
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+    content.textContent = text;
+
+    wrapper.appendChild(avatar);
+
+    const inner =
+        document.createElement("div");
+
+    inner.style.flex = "1";
+
+    inner.appendChild(content);
+
+    if (
+        role === "ai" &&
+        showActions
+    ) {
+
+        const actions =
+            document.createElement("div");
+
+        actions.className =
+            "message-actions";
+
+        actions.innerHTML = \`
+            <button onclick="copyText(this)">📋</button>
+            <button onclick="this.textContent='👍'">👍</button>
+            <button onclick="this.textContent='👎'">👎</button>
+        \`;
+
+        inner.appendChild(actions);
+
+    }
+
+    wrapper.appendChild(inner);
+
+    chat.appendChild(wrapper);
+
+    scrollToBottom();
+
+}
+
+function copyText(button) {
+
+    const message =
+        button
+        .closest(".message")
+        .querySelector(".message-content")
+        .textContent;
+
+    navigator.clipboard.writeText(message);
+
+    button.textContent = "✓";
+
+    setTimeout(() => {
+        button.textContent = "📋";
+    }, 1200);
+
+}
+
+function scrollToBottom() {
+
+    const chat =
+        document.getElementById("chat");
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+async function sendMessage() {
+
+    const input =
+        document.getElementById("messageInput");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const userMessage =
+        input.value.trim();
+
+    if (!userMessage) {
+        return;
+    }
+
+    const current =
+        getCurrentChat();
+
+    if (
+        current.messages.length === 0
+    ) {
+
+        current.title =
+            userMessage.length > 35
+                ? userMessage.substring(0, 35) + "..."
+                : userMessage;
+
+    }
+
+    current.messages.push({
+        role: "user",
+        text: userMessage
+    });
+
+    addMessageToScreen(
+        userMessage,
+        "user"
+    );
 
     input.value = "";
 
+    input.style.height = "auto";
+
+    saveData();
+
     sendButton.disabled = true;
 
-    const typing = document.createElement("div");
+    const typing =
+        document.createElement("div");
 
     typing.className = "message";
 
     typing.id = "typing";
 
     typing.innerHTML = \`
-        <div class="avatar ai-avatar">🤖</div>
-
+        <div class="avatar ai-avatar">S</div>
         <div class="message-content">
-
-            <div class="typing">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-
+            Samuel is thinking...
         </div>
     \`;
 
-    chat.appendChild(typing);
+    document
+        .getElementById("chat")
+        .appendChild(typing);
 
     scrollToBottom();
 
     try {
 
-        const response = await fetch("/chat", {
+        const response =
+            await fetch("/chat", {
 
-            method: "POST",
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
 
-            body: JSON.stringify({
-                message: message
-            })
+                body: JSON.stringify({
 
-        });
+                    message: userMessage,
 
-        const data = await response.json();
+                    memory: memories,
 
-        typing.remove();
+                    conversation:
+                        current.messages
+
+                })
+
+            });
+
+        const data =
+            await response.json();
+
+        const typingElement =
+            document.getElementById("typing");
+
+        if (typingElement) {
+            typingElement.remove();
+        }
 
         if (data.reply) {
 
-            addMessage(data.reply, "ai");
+            addMessageToScreen(
+                data.reply,
+                "ai"
+            );
+
+            current.messages.push({
+                role: "ai",
+                text: data.reply
+            });
+
+            /*
+             * SAVE NEW MEMORY
+             *
+             * If Samuel detects that the
+             * user explicitly asked him to
+             * remember something, the server
+             * sends it back as data.memory.
+             */
+
+            if (data.memory) {
+
+                if (
+                    !memories.includes(
+                        data.memory
+                    )
+                ) {
+
+                    memories.push(
+                        data.memory
+                    );
+
+                }
+
+            }
+
+            saveData();
+
+            renderHistory();
 
         } else {
 
-            addMessage(
-                "❌ Sorry, Samuel AI could not respond.",
+            addMessageToScreen(
+                "Sorry, something went wrong.",
                 "ai"
             );
 
@@ -474,94 +949,208 @@ async function sendMessage() {
 
     } catch (error) {
 
-        typing.remove();
+        const typingElement =
+            document.getElementById("typing");
 
-        addMessage(
-            "❌ Connection error. Please try again.",
+        if (typingElement) {
+            typingElement.remove();
+        }
+
+        addMessageToScreen(
+            "I couldn't connect to the AI server. Please try again.",
             "ai"
         );
+
+        console.error(error);
 
     }
 
     sendButton.disabled = false;
 
-    input.focus();
-
 }
 
-function addMessage(text, type) {
+function showMemory() {
 
-    const message = document.createElement("div");
+    const panel =
+        document.getElementById(
+            "memoryPanel"
+        );
 
-    message.className = "message";
+    const list =
+        document.getElementById(
+            "memoryList"
+        );
 
-    if (type === "user") {
+    list.innerHTML = "";
 
-        message.innerHTML = \`
-            <div class="avatar user-avatar">👤</div>
-            <div class="message-content"></div>
-        \`;
+    if (memories.length === 0) {
+
+        list.innerHTML =
+            "<p>Samuel hasn't saved anything yet.</p>";
 
     } else {
 
-        message.innerHTML = \`
-            <div class="avatar ai-avatar">🤖</div>
-            <div class="message-content"></div>
-        \`;
+        memories.forEach(
+            (memory, index) => {
+
+                const item =
+                    document.createElement("div");
+
+                item.className =
+                    "memory-item";
+
+                item.textContent =
+                    (index + 1) +
+                    ". " +
+                    memory;
+
+                list.appendChild(item);
+
+            }
+        );
 
     }
 
-    message.querySelector(".message-content").textContent = text;
-
-    chat.appendChild(message);
-
-    scrollToBottom();
+    panel.style.display = "block";
 
 }
 
-function scrollToBottom() {
+function closeMemory() {
 
-    chat.scrollTop = chat.scrollHeight;
-
-}
-
-function newChat() {
-
-    chat.innerHTML = \`
-        <div class="welcome" id="welcome">
-            <h1>How can I help you today?</h1>
-            <p>Ask Samuel AI anything.</p>
-        </div>
-    \`;
-
-    input.focus();
-
-}
-
-function clearChat() {
-
-    newChat();
+    document.getElementById(
+        "memoryPanel"
+    ).style.display = "none";
 
 }
 
 function toggleDarkMode() {
 
-    document.body.classList.toggle("dark");
+    document.body.classList.toggle(
+        "dark"
+    );
+
+    darkMode =
+        document.body.classList.contains(
+            "dark"
+        );
+
+    localStorage.setItem(
+        "samuel_dark",
+        darkMode
+    );
+
+}
+
+function clearEverything() {
+
+    const answer =
+        confirm(
+            "Delete all Samuel chats and memories from this device?"
+        );
+
+    if (!answer) {
+        return;
+    }
+
+    localStorage.removeItem(
+        "samuel_chats"
+    );
+
+    localStorage.removeItem(
+        "samuel_memories"
+    );
+
+    localStorage.removeItem(
+        "samuel_current_chat"
+    );
+
+    chats = [];
+
+    memories = [];
+
+    currentChatId = null;
+
+    createChat();
+
+    renderHistory();
+
+    renderChat();
+
+}
+
+document
+    .getElementById("messageInput")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+document
+    .getElementById("messageInput")
+    .addEventListener(
+        "input",
+        function() {
+
+            this.style.height =
+                "auto";
+
+            this.style.height =
+                Math.min(
+                    this.scrollHeight,
+                    160
+                ) + "px";
+
+        }
+    );
+
+/*
+ * START APPLICATION
+ */
+
+if (!currentChatId || chats.length === 0) {
+
+    createChat();
+
+} else {
+
+    renderHistory();
+
+    renderChat();
 
 }
 
 </script>
 
 </body>
-</html>
-`;
+</html>`;
 
 const server = http.createServer(async (req, res) => {
 
-    if (req.method === "GET" && req.url === "/") {
+    /*
+     * MAIN WEBSITE
+     */
+
+    if (
+        req.method === "GET" &&
+        req.url === "/"
+    ) {
 
         res.writeHead(200, {
-            "Content-Type": "text/html; charset=utf-8"
+            "Content-Type":
+                "text/html; charset=utf-8"
         });
 
         res.end(html);
@@ -569,7 +1158,14 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (req.method === "POST" && req.url === "/chat") {
+    /*
+     * CHAT API
+     */
+
+    if (
+        req.method === "POST" &&
+        req.url === "/chat"
+    ) {
 
         let body = "";
 
@@ -581,50 +1177,209 @@ const server = http.createServer(async (req, res) => {
 
             try {
 
-                const { message } = JSON.parse(body);
+                const data =
+                    JSON.parse(body);
 
-                if (!message) {
+                const userMessage =
+                    data.message || "";
 
-                    res.writeHead(400, {
-                        "Content-Type": "application/json"
-                    });
+                const memory =
+                    Array.isArray(data.memory)
+                        ? data.memory
+                        : [];
 
-                    res.end(JSON.stringify({
-                        error: "No message provided"
-                    }));
+                const conversation =
+                    Array.isArray(
+                        data.conversation
+                    )
+                        ? data.conversation
+                        : [];
 
-                    return;
+                /*
+                 * CHECK FOR MEMORY REQUEST
+                 */
+
+                const lower =
+                    userMessage.toLowerCase();
+
+                const memoryWords = [
+                    "remember that",
+                    "remember this",
+                    "don't forget",
+                    "do not forget",
+                    "please remember",
+                    "save this",
+                    "keep in mind"
+                ];
+
+                let newMemory = null;
+
+                for (
+                    const phrase of memoryWords
+                ) {
+
+                    if (
+                        lower.includes(phrase)
+                    ) {
+
+                        newMemory =
+                            userMessage;
+
+                        break;
+
+                    }
+
                 }
 
-                const response = await client.responses.create({
+                /*
+                 * PREPARE MEMORY
+                 */
 
-                    model: "gpt-5.6-luna",
+                let memoryText =
+                    "No saved memories.";
 
-                    input: message
+                if (memory.length > 0) {
 
-                });
+                    memoryText =
+                        memory
+                            .map(
+                                (m, i) =>
+                                    `${i + 1}. ${m}`
+                            )
+                            .join("\n");
 
-                const reply = response.output_text;
+                }
+
+                /*
+                 * PREPARE CONVERSATION
+                 */
+
+                let conversationText =
+                    "";
+
+                if (
+                    conversation.length > 0
+                ) {
+
+                    conversationText =
+                        conversation
+                            .slice(-20)
+                            .map(message => {
+
+                                const role =
+                                    message.role === "user"
+                                        ? "User"
+                                        : "Samuel";
+
+                                return (
+                                    role +
+                                    ": " +
+                                    message.text
+                                );
+
+                            })
+                            .join("\n");
+
+                }
+
+                /*
+                 * SYSTEM INSTRUCTIONS
+                 */
+
+                const systemPrompt = `
+You are Samuel AIChatbot, a helpful,
+friendly and intelligent AI assistant.
+
+Your job is to answer the user's questions
+clearly and naturally.
+
+You have access to the user's local memories
+and recent conversation.
+
+SAVED USER MEMORIES:
+${memoryText}
+
+RECENT CONVERSATION:
+${conversationText}
+
+Use saved memories naturally when they are
+relevant.
+
+Do not claim to remember something that is
+not contained in the provided memories or
+conversation.
+
+If the user asks you to remember something,
+acknowledge it naturally.
+
+Be helpful, friendly and concise unless the
+user asks for more detail.
+`;
+
+                /*
+                 * OPENAI REQUEST
+                 */
+
+                const completion =
+                    await client.chat.completions.create({
+
+                        model: "gpt-5.6-luna",
+
+                        messages: [
+                            {
+                                role: "system",
+                                content:
+                                    systemPrompt
+                            },
+                            {
+                                role: "user",
+                                content:
+                                    userMessage
+                            }
+                        ]
+
+                    });
+
+                const reply =
+                    completion
+                        .choices[0]
+                        .message
+                        .content;
+
+                /*
+                 * SEND RESPONSE
+                 */
 
                 res.writeHead(200, {
-                    "Content-Type": "application/json"
+                    "Content-Type":
+                        "application/json"
                 });
 
-                res.end(JSON.stringify({
-                    reply: reply
-                }));
+                res.end(
+                    JSON.stringify({
+                        reply: reply,
+                        memory: newMemory
+                    })
+                );
 
             } catch (error) {
 
-                console.error(error);
+                console.error(
+                    "OPENAI ERROR:",
+                    error
+                );
 
                 res.writeHead(500, {
-                    "Content-Type": "application/json"
+                    "Content-Type":
+                        "application/json"
                 });
 
-                res.end(JSON.stringify({
-                    error: "The AI could not respond."
-                }));
+                res.end(
+                    JSON.stringify({
+                        reply:
+                            "Sorry, I couldn't connect to the AI right now."
+                    })
+                );
 
             }
 
@@ -633,17 +1388,35 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    /*
+     * NOT FOUND
+     */
+
     res.writeHead(404, {
-        "Content-Type": "text/plain"
+        "Content-Type":
+            "text/plain"
     });
 
-    res.end("Not found");
+    res.end("Not found.");
 
 });
 
-server.listen(PORT, () => {
+/*
+ * START SERVER
+ */
 
-    console.log("🤖 SAMUEL AI CHATBOT SERVER");
-    console.log("Running on port " + PORT);
+server.listen(
+    PORT,
+    () => {
 
-});
+        console.log(
+            "🤖 SAMUEL AICHATBOT SERVER"
+        );
+
+        console.log(
+            "Running on port:",
+            PORT
+        );
+
+    }
+);
